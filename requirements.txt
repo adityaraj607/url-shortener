@@ -3,3 +3,4 @@ flask-limiter
 qrcode[pil]
 pillow
 PyMySQL
+gunicorn
