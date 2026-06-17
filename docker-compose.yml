@@ -20,7 +20,7 @@ services:
     image: urlshort_app
     container_name: "app_cont"
     ports:
-      - "8080:8080"
+      - "8080"
     command: sh -c "gunicorn server.app:app --bind 0.0.0.0:8080 --workers 2"
     env_file:
       - ".env"
