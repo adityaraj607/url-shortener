@@ -1,0 +1,58 @@
+version: "3.8"
+
+services:
+  nginx:
+    build: ./nginx
+    image: nginx
+    container_name: "nginx_cont"
+    ports:
+      - "80:80"
+    restart: always
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - urlshort-nw
+
+  app:
+    build:
+      context: .
+    image: urlshort_app
+    container_name: "app_cont"
+    ports:
+      - "8080:8080"
+    command: sh -c "gunicorn server.app:app --bind 0.0.0.0:8080 --workers 2"
+    env_file:
+      - ".env"
+    depends_on:
+      - db
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/api/urls || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - urlshort-nw
+
+  db:
+    image: mysql
+    container_name: urlshort_db
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=test_db
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - urlshort-nw
+
+networks:
+  urlshort-nw:
