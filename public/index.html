@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>urlshort — smart link shortener</title>
+  <meta name="description" content="shorten urls instantly with analytics and qr code generation powered by ai" />
+
+  <!-- tailwind cdn -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- material icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+
+  <!-- inter font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            blue: {
+              50:  '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              300: '#93c5fd',
+              400: '#60a5fa',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* base reset and body */
+    * { box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #ffffff; color: #111827; }
+
+    /* subtle fade in for cards */
+    .fade-in { animation: fadeIn 0.25s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* smooth scale on hover for copy btn */
+    .btn-icon:hover .material-icons-round { transform: scale(1.15); transition: transform 0.15s ease; }
+
+    /* chart bar hover */
+    .bar:hover { opacity: 0.85; }
+
+    /* input focus ring */
+    input:focus { outline: none; box-shadow: 0 0 0 3px #bfdbfe; }
+
+    /* tooltip */
+    [data-tip]:hover::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: 110%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e40af;
+      color: white;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    [data-tip] { position: relative; }
+
+    /* scrollbar thin */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #93c5fd; border-radius: 4px; }
+
+    /* tab active */
+    .tab-active {
+      border-bottom: 2px solid #2563eb;
+      color: #2563eb;
+      font-weight: 600;
+    }
+    .tab { cursor: pointer; padding: 8px 4px; font-size: 13px; color: #6b7280; border-bottom: 2px solid transparent; transition: all 0.15s; }
+    .tab:hover { color: #2563eb; }
+  </style>
+</head>
+
+<body class="min-h-screen bg-white">
+
+  <!-- ── top nav ───────────────────────────────────────────────────────── -->
+  <nav class="border-b border-gray-100 bg-white sticky top-0 z-10">
+    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="material-icons-round text-blue-600 text-xl">link</span>
+        <span class="font-semibold text-gray-900 text-sm tracking-tight">urlshort</span>
+      </div>
+
+    </div>
+  </nav>
+
+  <!-- ── main container ────────────────────────────────────────────────── -->
+  <main class="max-w-3xl mx-auto px-4 py-10 space-y-8">
+
+    <!-- hero heading -->
+    <div class="space-y-1">
+      <h1 class="text-2xl font-bold text-gray-900 tracking-tight">shorten any link</h1>
+      <p class="text-sm text-gray-500">paste a url below and get a short link with analytics and qr code</p>
+    </div>
+
+    <!-- ── shorten form ─────────────────────────────────────────────────── -->
+    <div class="border border-gray-200 rounded-xl p-5 space-y-4">
+
+      <!-- url input row -->
+      <div class="flex gap-2">
+        <div class="flex-1 flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-blue-200 transition">
+          <span class="material-icons-round text-gray-400 text-base">public</span>
+          <input
+            id="urlInput"
+            type="url"
+            placeholder="paste your long url here"
+            class="flex-1 text-sm bg-transparent border-none focus:outline-none text-gray-800 placeholder-gray-400"
+          />
+        </div>
+        <button
+          id="shortenBtn"
+          onclick="shorten()"
+          class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-medium px-4 py-2 rounded-lg transition flex items-center gap-1.5"
+        >
+          <span class="material-icons-round text-base">bolt</span>
+          shorten
+        </button>
+      </div>
+
+      <!-- custom alias row -->
+      <div class="flex items-center gap-2">
+        <span class="text-xs text-gray-400 shrink-0">custom alias</span>
+        <div class="flex items-center gap-1 border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-sm text-gray-400 focus-within:ring-2 focus-within:ring-blue-200 transition">
+          <span class="text-gray-300 text-xs">urlshort/</span>
+          <input
+            id="aliasInput"
+            type="text"
+            placeholder="my-link (optional)"
+            class="text-sm bg-transparent border-none focus:outline-none text-gray-800 placeholder-gray-400 w-36"
+          />
+        </div>
+        <!-- rate limit note -->
+        <span class="text-xs text-gray-400 flex items-center gap-1 ml-auto">
+          <span class="material-icons-round text-gray-300" style="font-size:13px">speed</span>
+          10 per minute
+        </span>
+      </div>
+
+      <!-- error / status message -->
+      <div id="formMsg" class="hidden text-xs rounded-lg px-3 py-2"></div>
+    </div>
+
+    <!-- ── result card (shown after shortening) ──────────────────────── -->
+    <div id="resultCard" class="hidden border border-blue-100 bg-blue-50 rounded-xl p-5 space-y-4 fade-in">
+
+      <!-- short url row -->
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <p class="text-xs text-gray-400 mb-0.5">short link</p>
+          <a id="shortUrlLink" href="#" target="_blank" class="text-blue-600 font-semibold text-sm hover:underline break-all"></a>
+        </div>
+        <button
+          id="copyBtn"
+          onclick="copyShortUrl()"
+          class="btn-icon flex items-center gap-1 text-xs text-blue-600 border border-blue-200 rounded-lg px-3 py-1.5 hover:bg-blue-100 transition"
+          data-tip="copy to clipboard"
+        >
+          <span class="material-icons-round text-base">content_copy</span>
+          copy
+        </button>
+      </div>
+
+      <!-- original url preview -->
+      <div>
+        <p class="text-xs text-gray-400 mb-0.5">original url</p>
+        <p id="originalUrlText" class="text-xs text-gray-600 break-all line-clamp-2"></p>
+      </div>
+
+      <!-- tabs: qr / analytics -->
+      <div class="border-t border-blue-100 pt-3">
+        <div class="flex gap-4 mb-4">
+          <span id="tabQr" class="tab tab-active" onclick="switchTab('qr')">
+            <span class="material-icons-round align-middle" style="font-size:13px">qr_code</span>
+            qr code
+          </span>
+          <span id="tabAnalytics" class="tab" onclick="switchTab('analytics')">
+            <span class="material-icons-round align-middle" style="font-size:13px">bar_chart</span>
+            analytics
+          </span>
+        </div>
+
+        <!-- qr panel -->
+        <div id="panelQr" class="flex flex-col items-center gap-3">
+          <img id="qrImg" src="" alt="qr code" class="w-40 h-40 rounded-lg border border-blue-200" />
+          <button onclick="downloadQr()" class="text-xs text-blue-600 flex items-center gap-1 hover:underline">
+            <span class="material-icons-round" style="font-size:14px">download</span>
+            download qr
+          </button>
+
+        </div>
+
+        <!-- analytics panel (hidden by default) -->
+        <div id="panelAnalytics" class="hidden space-y-3">
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-white border border-gray-100 rounded-lg p-3">
+              <p class="text-xs text-gray-400">total clicks</p>
+              <p id="statClicks" class="text-xl font-bold text-blue-600 mt-1">0</p>
+            </div>
+            <div class="bg-white border border-gray-100 rounded-lg p-3">
+              <p class="text-xs text-gray-400">created</p>
+              <p id="statCreated" class="text-sm font-medium text-gray-700 mt-1">—</p>
+            </div>
+          </div>
+
+          <!-- bar chart for daily clicks -->
+          <div>
+            <p class="text-xs text-gray-400 mb-2">last 30 days</p>
+            <div id="barChart" class="flex items-end gap-1 h-20 bg-white border border-gray-100 rounded-lg px-3 py-2">
+              <p class="text-xs text-gray-300 m-auto">no click data yet</p>
+            </div>
+          </div>
+
+          <!-- recent clicks -->
+          <div>
+            <p class="text-xs text-gray-400 mb-2">recent clicks</p>
+            <div id="recentClicks" class="space-y-1 text-xs text-gray-500"></div>
+          </div>
+
+          <button
+            onclick="refreshAnalytics()"
+            class="text-xs text-blue-600 flex items-center gap-1 hover:underline"
+          >
+            <span class="material-icons-round" style="font-size:13px">refresh</span>
+            refresh
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── all links list ────────────────────────────────────────────────── -->
+    <div class="space-y-3">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-gray-700">recent links</h2>
+        <button onclick="loadAllUrls()" class="text-xs text-blue-500 flex items-center gap-1 hover:underline">
+          <span class="material-icons-round" style="font-size:13px">refresh</span>
+          refresh
+        </button>
+      </div>
+      <div id="urlList" class="space-y-2 text-sm text-gray-400 italic">
+        loading...
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ── footer ─────────────────────────────────────────────────────────── -->
+  <footer class="border-t border-gray-100 mt-12 py-6">
+    <div class="max-w-3xl mx-auto px-4 flex items-center justify-between text-xs text-gray-400">
+      <span>urlshort · flask + sqlite</span>
+
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
