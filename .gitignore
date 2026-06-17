@@ -1,0 +1,5 @@
+server/urls.db
+*.db
+__pycache__/
+*.pyc
+.env
