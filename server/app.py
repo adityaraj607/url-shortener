@@ -8,7 +8,7 @@ from flask import Flask, request, jsonify, redirect, send_from_directory, abort
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
-from db import init_db, create_short_url, get_url, record_click, get_analytics, list_all_urls, code_exists
+from server.db import init_db, create_short_url, get_url, record_click, get_analytics, list_all_urls, code_exists
 from qr_gen import generate_qr
 
 app = Flask(__name__, static_folder="../public", static_url_path="")
